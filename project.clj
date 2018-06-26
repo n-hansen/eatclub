@@ -3,7 +3,9 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[clj-time "0.14.4"]
+  :dependencies [[cheshire "5.8.0"]
+                 [clj-http "3.9.0"]
+                 [clj-time "0.14.4"]
                  [com.h2database/h2 "1.4.196"]
                  [com.walmartlabs/lacinia "0.28.0"]
                  [compojure "1.6.1"]
