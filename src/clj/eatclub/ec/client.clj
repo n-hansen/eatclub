@@ -42,7 +42,7 @@
   (cookies/get-cookies cookie-store)
   )
 
-(defn open-dates
+(defn get-open-dates
   []
   (let [location-id (-> (http-client/get (:user endpoints)
                                          {:headers headers
@@ -67,7 +67,7 @@
          (remove (comp (set/union (set closed-dates) (set holidays)) :date)))))
 
 (comment
-  (open-dates)
+  (get-open-dates)
   )
 
 (comment
@@ -81,7 +81,7 @@
       :body
       json->edn))
 
-(defn menu*
+(defn get-menu
   [day-ix]
   (-> (http-client/get (:menu endpoints)
                        {:accept :json
@@ -94,13 +94,41 @@
       :body
       json->edn))
 
-(defn menu
-  [date]
-  (when-let [{:keys [ix]} (->> (open-dates)
-                               (filter #(-> % :date (= date)))
-                               first)]
-    (menu* ix)))
+(comment
+  (-> (get-open-dates)
+      first
+      :date
+      get-menu)
+  )
+
+(defn parse-menu
+  [{:keys [date items]}]
+  (for [{:keys [nutrition-estimate restaurant inventory food-category]
+         item-name :item :as item} (vals items)
+        :let [{restaurant-name :name} restaurant
+              {category :name} food-category
+              {:keys [hidden remaining]} inventory
+              {:strs [calories fat carbs protein]} (->> nutrition-estimate
+                                                        :estimates
+                                                        (filter :value)
+                                                        (map (fn [{:keys [name value]}]
+                                                               [(string/lower-case name) value]))
+                                                        (into {}))]]
+    (merge (select-keys item [:id :is-new :average-rating :review-count :price])
+           {:item-name item-name
+            :restaurant-name restaurant-name
+            :category category
+            :hidden hidden
+            :remaining remaining
+            :calories calories
+            :fat fat
+            :carbs carbs
+            :protein protein})))
 
 (comment
-  (menu "2018-06-29")
+  (-> (get-open-dates)
+      first
+      :ix
+      get-menu
+      parse-menu)
   )
