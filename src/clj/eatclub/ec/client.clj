@@ -104,7 +104,7 @@
 (defn parse-menu
   [{:keys [date items]}]
   (for [{:keys [nutrition-estimate restaurant inventory food-category]
-         item-name :item :as item} (vals items)
+         item-name :item, item-id :id, :as item} (vals items)
         :let [{restaurant-name :name} restaurant
               {category :name} food-category
               {:keys [hidden remaining]} inventory
@@ -114,8 +114,9 @@
                                                         (map (fn [{:keys [name value]}]
                                                                [(string/lower-case name) value]))
                                                         (into {}))]]
-    (merge (select-keys item [:id :is-new :average-rating :review-count :price])
-           {:item-name item-name
+    (merge (select-keys item [:is-new :average-rating :review-count :price])
+           {:item-id item-id
+            :item-name item-name
             :restaurant-name restaurant-name
             :category category
             :hidden hidden
