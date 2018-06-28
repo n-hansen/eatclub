@@ -3,9 +3,13 @@
             [clj-http.client :as http-client]
             [clj-http.cookies :as cookies]
             [clojure.set :as set]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.tools.logging :as log]
+            [eatclub.config :refer [env]]
+            [slingshot.slingshot :refer [try+ throw+]]))
 
 (def ^:const user-agent "Mozilla/4.0 WebTV/2.6 (compatible; MSIE 4.0)")
+(def ^:const reauthentication-wait 500)
 
 (def headers {"user-agent" user-agent})
 
@@ -18,7 +22,7 @@
 
 (def cookie-store (cookies/cookie-store))
 
-(defn- json->edn
+(defn json->edn
   [str]
   (json/parse-string str #(-> %
                               (string/replace #"_" "-")
@@ -26,45 +30,64 @@
                               keyword)))
 
 (defn login
-  [email password]
+  []
   (-> (http-client/put (:login endpoints)
                        {:headers headers
                         :cookie-store cookie-store
                         :content-type :json
                         :accept :json
-                        :body (json/generate-string {:email email
-                                                     :password password})})
+                        :body (json/generate-string {:email (:eatclub-email env)
+                                                     :password (:eatclub-password env)})})
       :body
       json->edn))
 
 (comment
-  (login email password)
+  (login)
   (cookies/get-cookies cookie-store)
   )
 
+(defn request-with-reauthentication
+  ([request-map] (request-with-reauthentication request-map 1))
+  ([request-map retries]
+   (try+ (http-client/request request-map)
+         (catch [:status 401] {:keys [body]}
+           (if (> retries 0)
+             (do
+               (log/info (format "Authentication error. Reauthenticating and retrying (%s retries left)." retries))
+               (Thread/sleep reauthentication-wait)
+               (login)
+               (request-with-reauthentication request-map (dec retries)))
+             (log/error (format "Authentication error. No more retries and giving up. Request: %s, response: %s"
+                                (pr-str request-map)
+                                body)))))))
+
 (defn get-open-dates
   []
-  (let [location-id (-> (http-client/get (:user endpoints)
-                                         {:headers headers
-                                          :cookie-store cookie-store
-                                          :accept :json})
-                        :body
-                        json->edn
-                        :selected-location
-                        :id)
-        {:keys [menu-dates closed-dates holidays holiday-details]}
-        (-> (http-client/get (:menu-dates endpoints)
-                             {:headers headers
-                              :accept :json
-                              :content-type :json
-                              :cookie-store cookie-store
-                              :query-params {"include_today" true
-                                             "location_id" location-id}})
-            :body
-            json->edn)]
-    (->> menu-dates
-         (map-indexed #(do {:ix (inc %1) :date %2})) ; YES IT REALLY IS 1-INDEXED
-         (remove (comp (set/union (set closed-dates) (set holidays)) :date)))))
+  (when-let [location-id (some-> {:url (:user endpoints)
+                                  :method :get
+                                  :headers headers
+                                  :cookie-store cookie-store
+                                  :accept :json}
+                                 request-with-reauthentication
+                                 :body
+                                 json->edn
+                                 :selected-location
+                                 :id)]
+    (when-let [{:keys [menu-dates closed-dates holidays holiday-details]}
+               (some-> {:url (:menu-dates endpoints)
+                        :method :get
+                        :headers headers
+                        :accept :json
+                        :content-type :json
+                        :cookie-store cookie-store
+                        :query-params {"include_today" true
+                                       "location_id" location-id}}
+                       request-with-reauthentication
+                       :body
+                       json->edn)]
+      (->> menu-dates
+           (map-indexed #(do {:ix (inc %1) :date %2})) ; YES IT REALLY IS 1-INDEXED
+           (remove (comp (set/union (set closed-dates) (set holidays)) :date))))))
 
 (comment
   (get-open-dates)
@@ -97,7 +120,7 @@
 (comment
   (-> (get-open-dates)
       first
-      :date
+      :ix
       get-menu)
   )
 
@@ -115,7 +138,8 @@
                                                                [(string/lower-case name) value]))
                                                         (into {}))]]
     (merge (select-keys item [:is-new :average-rating :review-count :price])
-           {:item-id item-id
+           {:menu-date date
+            :item-id item-id
             :item-name item-name
             :restaurant-name restaurant-name
             :category category
@@ -131,5 +155,6 @@
       first
       :ix
       get-menu
-      parse-menu)
+      parse-menu
+      first)
   )
