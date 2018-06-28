@@ -1,21 +1,33 @@
--- :name create-user! :! :n
--- :doc creates a new user record
-INSERT INTO users
-(id, first_name, last_name, email, pass)
-VALUES (:id, :first_name, :last_name, :email, :pass)
+-- :name create-restaurant! :insert
+INSERT INTO restaurants
+(name)
+VALUES (:name)
 
--- :name update-user! :! :n
--- :doc updates an existing user record
-UPDATE users
-SET first_name = :first_name, last_name = :last_name, email = :email
-WHERE id = :id
+-- :name get-restaurant :? :1
+SELECT id FROM restaurants WHERE name = :name LIMIT 1
 
--- :name get-user :? :1
--- :doc retrieves a user record given the id
-SELECT * FROM users
-WHERE id = :id
+-- :name create-category! :insert
+INSERT INTO categories
+(name)
+VALUES (:name)
 
--- :name delete-user! :! :n
--- :doc deletes a user record given the id
-DELETE FROM users
-WHERE id = :id
+-- :name get-category :? :1
+SELECT id FROM categories WHERE name = :name LIMIT 1
+
+-- :name create-item! :execute
+INSERT INTO items
+(id,name,calories,fat,protein,carbs,price,restaurant,category)
+VALUES (:id,:name,:calories,:fat,:protein,:carbs,:price,:restaurant,:category)
+
+-- :name get-item :? :1
+SELECT * FROM items WHERE id = :id
+
+-- :name create-menu-snapshot! :insert
+INSERT INTO menu_snapshots
+(snapshot_time,menu_date)
+VALUES (:snapshot_time,:menu_date)
+
+-- :name create-item-listing! :insert
+INSERT INTO item_listing
+(menu_snapshot,item,quantity,hidden,average_rating,review_count)
+VALUES (:menu_snapshot,:item,:quantity,:hidden,:average_rating,:review_count)
