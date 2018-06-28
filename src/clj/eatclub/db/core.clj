@@ -11,3 +11,8 @@
 
 (conman/bind-connection *db* "sql/queries.sql")
 
+(defn result->id
+  "get the row id from an insert result"
+  [result]
+  ;; h2 specific
+  (get result (keyword "scope_identity()")))

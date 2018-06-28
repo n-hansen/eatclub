@@ -3,7 +3,7 @@ INSERT INTO restaurants
 (name)
 VALUES (:name)
 
--- :name get-restaurant :? :1
+-- :name get-restaurant-id :? :1
 SELECT id FROM restaurants WHERE name = :name LIMIT 1
 
 -- :name create-category! :insert
@@ -11,7 +11,7 @@ INSERT INTO categories
 (name)
 VALUES (:name)
 
--- :name get-category :? :1
+-- :name get-category-id :? :1
 SELECT id FROM categories WHERE name = :name LIMIT 1
 
 -- :name create-item! :execute

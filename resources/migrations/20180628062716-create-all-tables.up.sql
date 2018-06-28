@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS items
 name VARCHAR(45),
 calories VARCHAR(4),
 fat VARCHAR(4),
-protien VARCHAR(4),
+protein VARCHAR(4),
 carbs VARCHAR(4),
 price DECIMAL(4,2),
 restaurant BIGINT,
