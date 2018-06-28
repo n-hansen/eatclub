@@ -60,7 +60,8 @@
                                  [prone "1.6.0"]
                                  [ring/ring-devel "1.6.3"]
                                  [ring/ring-mock "0.3.2"]]
-                  :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]]
+                  :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]
+                                 [cider/cider-nrepl "0.17.0"]]
                   
                   :source-paths ["env/dev/clj"]
                   :resource-paths ["env/dev/resources"]
