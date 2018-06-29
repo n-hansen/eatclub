@@ -1,7 +1,8 @@
 (ns eatclub.ec.worker
   (:require [clojure.tools.logging :as log]
             [eatclub.ec.client :as client]
-            [eatclub.db.core :as db])
+            [eatclub.db.core :as db]
+            [taoensso.nippy :as nippy])
   (:import [java.util Date]))
 
 (defn grab-menus
@@ -22,7 +23,8 @@
                                        db/result->id))
                    snapshot-id (db/result->id
                                 (db/create-menu-snapshot! {:snapshot_time now
-                                                           :menu_date menu-date}))]]
+                                                           :menu_date menu-date
+                                                           :full_response (nippy/freeze menu)}))]]
           (when-not (db/get-item {:id item-id})
             (db/create-item! {:id item-id
                               :name item-name

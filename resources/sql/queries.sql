@@ -24,8 +24,8 @@ SELECT * FROM items WHERE id = :id
 
 -- :name create-menu-snapshot! :insert
 INSERT INTO menu_snapshots
-(snapshot_time,menu_date)
-VALUES (:snapshot_time,:menu_date)
+(snapshot_time,menu_date,full_response)
+VALUES (:snapshot_time,:menu_date,:full_response)
 
 -- :name create-item-listing! :insert
 INSERT INTO item_listing
