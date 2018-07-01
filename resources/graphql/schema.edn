@@ -1,25 +1,47 @@
 {:enums
- {:episode
-  {:description "The episodes of the original Star Wars trilogy."
-   :values [:NEWHOPE :EMPIRE :JEDI]}}
+ {:granularity
+  {:values [:seconds :minutes :hours :days :weeks :months :years :alltime]}
+
+  :aggregation
+  {:values [:first :last :minimum :maximum :mean]}}
+
+ :scalars
+ {:date
+  {:parse :date/parse
+   :serialize :date/serialize}
+
+  :timestamp
+  {:parse :timestamp/parse
+   :serialize :timestamp/serialize}}
 
  :objects
- {:droid
-  {:fields {:primary_functions {:type (list String)}
-            :id {:type Int}
-            :name {:type String}
-            :appears_in {:type (list :episode)}}}
+ {:item
+  {:fields {:id {:type ID}
+            :name {:type String
+                   :resolve :item/name}}}
 
-  :human
-  {:fields {:id {:type Int}
-            :name {:type String}
-            :home_planet {:type String}
-            :appears_in {:type (list :episode)}}}}
+  :menu
+  {:fields {:date {:type :date}
+            :listed_items {:type (list :item_listing)
+                           :resolve :menu/listed-items}}}
+
+  :item_listing
+  {:fields {:item {:type :item}
+            :snapshots {:type (list :snapshot)
+                        :resolver :item-listing/snapshots
+                        :args {:precision {:type :granularity :default-value :alltime}
+                               :aggregation {:type :aggregation :default-value :last}
+                               :window_start {:type :timestamp}
+                               :window_end {:type :timestamp}}}}}
+
+  :snapshot
+  {:fields {:timestamp {:type :timestamp}
+            :quantity {:type Int}
+            :hidden {:type Boolean}
+            :average_rating {:type Float}
+            :review_count {:type Int}}}}
 
  :queries
- {:hero {:type (non-null :human)
-         :args {:id {:type String :default-value "2001"}}
-         :resolve :get-hero}
-  :droid {:type :droid
-          :args {:name {:type String}}
-          :resolve :get-droid}}}
+ {:menu {:type :menu
+         :args {:date {:type :date}}
+         :resolve :query/menu}}}
