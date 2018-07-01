@@ -5,6 +5,7 @@
             [clojure.data.json :as json]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.tools.logging :as log]
             [eatclub.graphql.scalars :as scalars]
             [eatclub.graphql.resolvers :as resolvers]
             [java-time :as time]
@@ -22,12 +23,15 @@
       (gql-util/attach-resolvers resolvers/resolver-map)
       schema/compile))
 
-(defn format-params [query]
-   (let [parsed (json/read-str query)] ;;-> placeholder - need to ensure query meets graphql syntax
-     (str "query { hero(id: \"1000\") { name appears_in }}")))
-
-(defn execute-request [query]
-    (let [vars nil
-          context nil]
+(defn execute-query [query]
+  (let [vars nil
+        context nil]
     (-> (lacinia/execute compiled-schema query vars context)
         (json/write-str))))
+
+(defn execute-json-request
+  [json]
+  (try (let [{:keys [query]} (json/read-str json :key-fn keyword)]
+         (execute-query query))
+       (catch Exception e "")))
+

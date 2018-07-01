@@ -1,7 +1,6 @@
 (ns eatclub.handler
   (:require 
-            [eatclub.routes.services :refer [service-routes]]
-            [compojure.core :refer [routes wrap-routes]]
+            [eatclub.routes :refer [app-routes]]
             [ring.util.http-response :as response]
             [eatclub.middleware :as middleware]
             [compojure.route :as route]
@@ -14,9 +13,4 @@
 
 (mount/defstate app
   :start
-  (middleware/wrap-base
-    (routes
-          #'service-routes
-          (route/not-found
-             "page not found"))))
-
+  (middleware/wrap-base #'app-routes))
