@@ -25,6 +25,7 @@
                  [org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.cli "0.3.7"]
                  [org.clojure/tools.logging "0.4.1"]
+                 [org.immutant/immutant "2.1.10"]
                  [org.webjars.bower/tether "1.4.4"]
                  [org.webjars/bootstrap "4.1.1"]
                  [org.webjars/font-awesome "5.1.0"]
@@ -62,8 +63,7 @@
                                  [prone "1.6.0"]
                                  [ring/ring-devel "1.6.3"]
                                  [ring/ring-mock "0.3.2"]]
-                  :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]
-                                 [cider/cider-nrepl "0.17.0"]]
+                  :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]]
                   
                   :source-paths ["env/dev/clj"]
                   :resource-paths ["env/dev/resources"]
