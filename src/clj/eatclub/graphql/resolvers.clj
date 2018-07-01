@@ -1,5 +1,6 @@
 (ns eatclub.graphql.resolvers
-  (:require [eatclub.db.core :as db]
+  (:require [clojure.edn :as edn]
+            [eatclub.db.core :as db]
             [java-time :as time]))
 
 (def ^:private resolvers (atom {}))
@@ -8,18 +9,38 @@
   [ident & fn-body]
   `(swap! resolvers assoc ~ident (fn ~@fn-body)))
 
+(defn- serialize-id
+  [prefix id]
+  (str prefix ":" id))
+
+(defn- deserialize-id
+  [prefix str]
+  (when-let [[_ prefix* id] (re-matches #"(.*):([0-9]+)" str)]
+    (when (= prefix prefix*)
+      (edn/read-string id))))
+
 ;;;; Field Resolvers
+
+(defresolver :item/id
+  [_ _ {:keys [id]}]
+  (serialize-id "item" id))
 
 (defresolver :item/name
   [_ _ {:keys [id]}]
   (:name (db/get-item {:id id})))
 
 (defresolver :menu/listed-items
-  [_ _ {:keys [date]}]
-  (map (fn [{:keys [item_id]}]
-         {:item {:id item_id}
-          :menu-date date})
-       (db/get-menu-items {:menu_date date})))
+  [_ {:keys [ids]} {:keys [date]}]
+  (let [id-filter (if (not-empty ids)
+                    (->> ids
+                         (map #(deserialize-id "item" %))
+                         (into #{}))
+                    (constantly true))]
+    (->> (db/get-menu-items {:menu_date date})
+         (filter #(-> % :item_id id-filter))
+         (map (fn [{:keys [item_id]}]
+                {:item {:id item_id}
+                 :menu-date date})))))
 
 (defresolver :item-listing/snapshots
   [_ {:keys [precision aggregation window_start window_end]} {:keys [menu-date item]}]

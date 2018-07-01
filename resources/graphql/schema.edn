@@ -16,19 +16,21 @@
 
  :objects
  {:item
-  {:fields {:id {:type ID}
+  {:fields {:id {:type ID
+                 :resolve :item/id}
             :name {:type String
                    :resolve :item/name}}}
 
   :menu
   {:fields {:date {:type :date}
             :listed_items {:type (list :item_listing)
-                           :resolve :menu/listed-items}}}
+                           :resolve :menu/listed-items
+                           :args {:ids {:type (list ID)}}}}}
 
   :item_listing
   {:fields {:item {:type :item}
             :snapshots {:type (list :snapshot)
-                        :resolver :item-listing/snapshots
+                        :resolve :item-listing/snapshots
                         :args {:precision {:type :granularity :default-value :alltime}
                                :aggregation {:type :aggregation :default-value :last}
                                :window_start {:type :timestamp}
