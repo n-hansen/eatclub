@@ -45,9 +45,9 @@
 (defresolver :item-listing/snapshots
   [_ {:keys [precision aggregation window_start window_end]} {:keys [menu-date item]}]
   (->> (db/get-snapshots {:menu_date menu-date
-                          :item item
-                          :window_start (or #_window_start (time/offset-date-time 0))
-                          :window_end (or #_window_end (time/offset-date-time))})
+                          :item (:id item)
+                          :window_start (or window_start (time/offset-date-time 0))
+                          :window_end (or window_end (time/offset-date-time))})
        (group-by (case precision
                    (:seconds :minutes :hours :days)
                    #(-> % :timestamp (time/truncate-to precision))
@@ -55,7 +55,8 @@
                    :months #(-> % :timestamp (time/as :month))
                    :years #(-> % :timestamp (time/as :year))
                    :alltime (constantly 0)))
-       vals
+       (sort-by first)
+       (map second)
        (map (fn [[{:keys [timestamp]} :as entries]]
               (let [aggregated-entries
                     (case aggregation

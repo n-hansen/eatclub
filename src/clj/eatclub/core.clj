@@ -4,6 +4,7 @@
             [luminus.http-server :as http]
             [luminus-migrations.core :as migrations]
             [eatclub.config :refer [env]]
+            [eatclub.ec.worker]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [mount.core :as mount])
