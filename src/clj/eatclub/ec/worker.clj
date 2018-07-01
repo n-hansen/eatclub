@@ -3,18 +3,23 @@
             [eatclub.ec.client :as client]
             [eatclub.db.core :as db]
             [immutant.scheduling :as scheduling]
+            [java-time :as time]
             [mount.core :as mount]
             [taoensso.nippy :as nippy])
   (:import [java.util Date]))
 
 (def polling-schedule
-  {:every [5 :minutes]})
+  {:every [10 :minutes]})
 
 (defn grab-menus
   []
   (doseq [{:keys [ix date]} (client/get-open-dates)
           :let [menu (-> ix client/get-menu client/parse-menu)
-                now (Date.)]]
+                now (time/offset-date-time)
+                snapshot-id (db/result->id
+                             (db/create-menu-snapshot! {:snapshot_time now
+                                                        :menu_date date
+                                                        :full_response (nippy/freeze menu)}))]]
     (log/debug (format "Fetching menu for %s." date))
     (doseq  [{:keys [average-rating review-count price menu-date item-id item-name restaurant-name
                      category hidden remaining calories fat carbs protein]}
@@ -26,11 +31,7 @@
                    category-id (or (-> {:name category} db/get-category-id :id)
                                    (-> {:name category}
                                        db/create-category!
-                                       db/result->id))
-                   snapshot-id (db/result->id
-                                (db/create-menu-snapshot! {:snapshot_time now
-                                                           :menu_date menu-date
-                                                           :full_response (nippy/freeze menu)}))]]
+                                       db/result->id))]]
           (when-not (db/get-item {:id item-id})
             (db/create-item! {:id item-id
                               :name item-name
