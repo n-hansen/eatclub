@@ -1,23 +1,16 @@
-(ns eatclub.routes.services.graphql
-  (:require [com.walmartlabs.lacinia.util :refer [attach-resolvers]]
+(ns eatclub.graphql.core
+  (:require [com.walmartlabs.lacinia.util :as gql-util]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia :as lacinia]
             [clojure.data.json :as json]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [eatclub.graphql.scalars :as scalars]
+            [eatclub.graphql.resolvers :as resolvers]
+            [java-time :as time]
             [ring.util.http-response :refer :all]
             [mount.core :refer [defstate]]))
 
-(defn get-hero [context args value]
-  (let [data  [{:id 1000
-               :name "Luke"
-               :home_planet "Tatooine"
-               :appears_in ["NEWHOPE" "EMPIRE" "JEDI"]}
-              {:id 2000
-               :name "Lando Calrissian"
-               :home_planet "Socorro"
-               :appears_in ["EMPIRE" "JEDI"]}]]
-           (first data)))
 
 (defstate compiled-schema
   :start
@@ -25,8 +18,8 @@
       io/resource
       slurp
       edn/read-string
-      (attach-resolvers {:get-hero get-hero
-                         :get-droid (constantly {})})
+      (gql-util/attach-scalar-transformers scalars/transformer-map)
+      (gql-util/attach-resolvers resolvers/resolver-map)
       schema/compile))
 
 (defn format-params [query]

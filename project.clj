@@ -6,6 +6,7 @@
   :dependencies [[cheshire "5.8.0"]
                  [clj-http "3.9.0"]
                  [clj-time "0.14.4"]
+                 [clojure.java-time "0.3.2"]
                  [com.h2database/h2 "1.4.196"]
                  [com.taoensso/nippy "2.14.0"]
                  [com.walmartlabs/lacinia "0.28.0"]

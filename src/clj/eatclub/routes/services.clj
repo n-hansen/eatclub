@@ -1,7 +1,7 @@
 (ns eatclub.routes.services
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
-            [eatclub.routes.services.graphql :as graphql]
+            [eatclub.graphql.core :as graphql]
             [schema.core :as s]))
 
 (defapi service-routes
