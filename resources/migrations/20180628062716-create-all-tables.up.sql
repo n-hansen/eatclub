@@ -21,7 +21,7 @@ FOREIGN KEY (category) REFERENCES categories(id));
 --;;
 CREATE TABLE IF NOT EXISTS menu_snapshots
 (id IDENTITY PRIMARY KEY,
-snapshot_time TIMESTAMP,
+snapshot_time TIMESTAMP WITH TIME ZONE,
 menu_date DATE,
 full_response BLOB);
 --;;

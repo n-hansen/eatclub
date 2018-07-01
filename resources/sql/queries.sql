@@ -31,3 +31,31 @@ VALUES (:snapshot_time,:menu_date,:full_response)
 INSERT INTO item_listing
 (menu_snapshot,item,quantity,hidden,average_rating,review_count)
 VALUES (:menu_snapshot,:item,:quantity,:hidden,:average_rating,:review_count)
+
+-- :name get-menu-items :? :*
+SELECT
+  DISTINCT i.id AS id
+FROM
+  menu_snapshots ms
+  INNER JOIN item_listing il ON il.menu_snapshot = ms.id
+  INNER JOIN items i ON i.id = il.item
+WHERE
+  ms.menu_date = :menu_date
+
+-- :name get-snapshots* :? :*
+SELECT
+  snapshot_time AS timestamp,
+  quantity,
+  hidden,
+  average_rating,
+  review_count
+FROM
+  menu_snapshots ms
+  INNER JOIN item_listing il ON il.menu_snapshot = ms.id
+WHERE
+  ms.menu_date = :menu_date
+  AND il.item = :item
+  AND snapshot_time >= :window_start
+  AND snapshot_time <= :window_end
+ORDER BY
+  snapshot_time ASC
