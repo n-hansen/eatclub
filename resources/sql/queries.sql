@@ -34,7 +34,7 @@ VALUES (:menu_snapshot,:item,:quantity,:hidden,:average_rating,:review_count)
 
 -- :name get-menu-items :? :*
 SELECT
-  DISTINCT i.id AS id
+  DISTINCT i.id AS item_id
 FROM
   menu_snapshots ms
   INNER JOIN item_listing il ON il.menu_snapshot = ms.id

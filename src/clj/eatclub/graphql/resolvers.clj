@@ -16,7 +16,9 @@
 
 (defresolver :menu/listed-items
   [_ _ {:keys [date]}]
-  (map #(assoc % :menu-date date)
+  (map (fn [{:keys [item_id]}]
+         {:item {:id item_id}
+          :menu-date date})
        (db/get-menu-items {:menu_date date})))
 
 (defresolver :item-listing/snapshots
@@ -69,8 +71,8 @@
 ;;;; Query Resolvers
 
 (defresolver :query/menu
-  [_ _ _]
-  nil)
+  [_ {:keys [date]} _]
+  {:date date})
 
 ;;;; Export map
 
