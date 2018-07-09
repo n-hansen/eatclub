@@ -12,3 +12,5 @@ profiles.clj
 /.env
 .nrepl-port
 /log
+elm-stuff
+repl-temp-*
