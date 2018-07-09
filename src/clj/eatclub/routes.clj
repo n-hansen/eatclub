@@ -17,7 +17,7 @@
           (ok (graphql/execute-json-request (slurp body)))
 
           (= (request/content-type r) "application/graphql")
-          (ok (graphql/execute-query (slurp body)))
+          (ok (graphql/execute-query (slurp body) variables))
 
           :else (bad-request "I didn't understand your graphql request."))))
   (route/not-found "page not found"))
