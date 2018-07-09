@@ -14,7 +14,7 @@
 
 ;;;; Date
 
-(def date-formatter DateTimeFormatter/BASIC_ISO_DATE)
+(def date-formatter DateTimeFormatter/ISO_LOCAL_DATE)
 
 (deftransformer :date/parse
   [s]
