@@ -23,15 +23,16 @@
       (gql-util/attach-resolvers resolvers/resolver-map)
       schema/compile))
 
-(defn execute-query [query]
-  (let [vars nil
-        context nil]
-    (-> (lacinia/execute compiled-schema query vars context)
-        (json/write-str))))
+(defn execute-query
+  ([query] (execute-query query nil))
+  ([query vars]
+   (let [context nil]
+     (-> (lacinia/execute compiled-schema query vars context)
+         (json/write-str)))))
 
 (defn execute-json-request
   [json]
-  (try (let [{:keys [query]} (json/read-str json :key-fn keyword)]
-         (execute-query query))
+  (try (let [{:keys [query variables]} (json/read-str json :key-fn keyword)]
+         (execute-query query variables))
        (catch Exception e "")))
 

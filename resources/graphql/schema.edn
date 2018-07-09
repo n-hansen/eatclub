@@ -32,16 +32,23 @@
             :snapshots {:type (list :snapshot)
                         :resolve :item-listing/snapshots
                         :args {:precision {:type :granularity :default-value :alltime}
-                               :aggregation {:type :aggregation :default-value :last}
                                :window_start {:type :timestamp}
                                :window_end {:type :timestamp}}}}}
 
   :snapshot
   {:fields {:timestamp {:type :timestamp}
-            :quantity {:type Int}
-            :hidden {:type Boolean}
-            :average_rating {:type Float}
-            :review_count {:type Int}}}}
+            :quantity {:type Int
+                       :resolve :snapshot/quantity
+                       :args {:aggregation {:type :aggregation :default-value :last}}}
+            :hidden {:type Boolean
+                     :resolve :snapshot/hidden
+                     :args {:aggregation {:type :aggregation :default-value :last}}}
+            :average_rating {:type Float
+                             :resolve :snapshot/average-rating
+                             :args {:aggregation {:type :aggregation :default-value :last}}}
+            :review_count {:type Int
+                           :resolve :snapshot/review-count
+                           :args {:aggregation {:type :aggregation :default-value :last}}}}}}
 
  :queries
  {:menu {:type :menu

@@ -43,7 +43,7 @@
                  :menu-date date})))))
 
 (defresolver :item-listing/snapshots
-  [_ {:keys [precision aggregation window_start window_end]} {:keys [menu-date item]}]
+  [_ {:keys [precision window_start window_end]} {:keys [menu-date item]}]
   (->> (db/get-snapshots {:menu_date menu-date
                           :item (:id item)
                           :window_start (or window_start (time/offset-date-time 0))
@@ -59,36 +59,48 @@
        (map second)
        (map (fn [[{:keys [timestamp]} :as entries]]
               (let [aggregated-entries
-                    (case aggregation
-                      :first (first entries)
-                      :last (last entries)
-                      :minimum (reduce (fn [a b]
-                                         (merge-with
-                                          #(if (< (compare %1 %2) 0) %1 %2)
-                                          a b))
-                                       entries)
-                      :maximum (reduce (fn [a b]
-                                         (merge-with
-                                          #(if (> (compare %1 %2) 0) %1 %2)
-                                          a b))
-                                       entries)
-                      :mean  (let [{:keys [quantity average_rating review_count]}
-                                   (->> entries
-                                        (map #(dissoc % :timestamp :hidden))
-                                        (reduce #(merge-with +))
-                                        (map (fn [[k v]]
-                                               [k (double (/ v (count entries)))]))
-                                        (into {}))]
-                               {:hidden (->> entries
-                                             (map :hidden)
-                                             (group-by identity)
-                                             (sort-by second #(compare %2 %1))
-                                             first
-                                             second)
-                                :quantity (Math/floor quantity)
-                                :average_rating average_rating
-                                :review_count (Math/ceil review_count)}))]
+                    (->> entries
+                         (map #(dissoc % :timestamp))
+                         (reduce
+                          #(merge-with conj %1 %2)
+                          {:quantity []
+                           :hidden []
+                           :average_rating []
+                           :review_count []}))]
                 (assoc aggregated-entries :timestamp timestamp))))))
+
+(defn aggregate
+  ([method coll] (aggregate method identity coll))
+  ([method from-double coll]
+   (case method
+     :first (first coll)
+     :last (last coll)
+     :minimum (reduce #(if (< (compare %1 %2) 0) %1 %2)
+                      coll)
+     :maximum (reduce #(if (> (compare %1 %2) 0) %1 %2)
+                      coll)
+     :mean (let [sum (reduce + coll)]
+             (-> (/ sum (count coll))
+                 double
+                 from-double)))))
+
+(defresolver :snapshot/quantity
+  [_ {:keys [aggregation]} {:keys [quantity]}]
+  (aggregate aggregation #(Math/round %) quantity))
+
+(defresolver :snapshot/hidden
+  [_ {:keys [aggregation]} {:keys [hidden]}]
+  (->> hidden
+       (map #(if % 1 0)) ; coerce to bits so we can take the average if we get :mean
+       (aggregate aggregation #(-> % (Math/round) (= 1)))))
+
+(defresolver :snapshot/average-rating
+  [_ {:keys [aggregation]} {:keys [average_rating]}]
+  (aggregate aggregation average_rating))
+
+(defresolver :snapshot/review-count
+  [_ {:keys [aggregation]} {:keys [review_count]}]
+  (aggregate aggregation #(Math/round %) review_count))
 
 ;;;; Query Resolvers
 

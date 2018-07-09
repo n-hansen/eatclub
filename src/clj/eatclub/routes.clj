@@ -9,9 +9,9 @@
   (context "/api/graphql" []
       (GET "/" [query]
         (ok (graphql/execute-query query)))
-      (POST "/" [query :as {body :body :as r}]
+      (POST "/" [query variables :as {body :body :as r}]
         (cond
-          query (ok (graphql/execute-query query))
+          query (ok (graphql/execute-query query variables))
 
           (= (request/content-type r) "application/json")
           (ok (graphql/execute-json-request (slurp body)))
