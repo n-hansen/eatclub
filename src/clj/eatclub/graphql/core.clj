@@ -30,9 +30,4 @@
      (-> (lacinia/execute compiled-schema query vars context)
          (json/write-str)))))
 
-(defn execute-json-request
-  [json]
-  (try (let [{:keys [query variables]} (json/read-str json :key-fn keyword)]
-         (execute-query query variables))
-       (catch Exception e "")))
 
